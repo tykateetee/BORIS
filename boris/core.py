@@ -4366,7 +4366,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             msg += (
                 f"Media position: <b>{util.convertTime(self.timeFormat, current_media_time_pos)}</b> / "
-                f"{util.convertTime(self.timeFormat, current_media_duration)} frame: <b>{frame_idx}</b>"
+                f"{util.convertTime(self.timeFormat, current_media_duration)} This is a good test me: <b>{frame_idx}</b>"
             )
 
             # with time offset
