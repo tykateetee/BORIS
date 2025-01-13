@@ -217,9 +217,6 @@ class Ui_Form(object):
         self.cbCloseCurrentBehaviorsBetweenVideo.setObjectName("cbCloseCurrentBehaviorsBetweenVideo")
         self.verticalLayout.addWidget(self.cbCloseCurrentBehaviorsBetweenVideo)
         self.tabWidget.addTab(self.tab_player_1, "")
-
-
-
         self.tab_data_files = QtWidgets.QWidget()
         self.tab_data_files.setObjectName("tab_data_files")
         self.verticalLayout_17 = QtWidgets.QVBoxLayout(self.tab_data_files)
@@ -285,9 +282,6 @@ class Ui_Form(object):
         self.verticalLayout_16.addItem(spacerItem6)
         self.verticalLayout_17.addWidget(self.splitter_5)
         self.tabWidget.addTab(self.tab_data_files, "")
-
-
-
         self.tab_data_filesf = QtWidgets.QWidget()
         self.tab_data_filesf.setObjectName("tab_data_filesf")
         self.verticalLayout_17f = QtWidgets.QVBoxLayout(self.tab_data_filesf)
@@ -353,10 +347,6 @@ class Ui_Form(object):
         self.verticalLayout_16f.addItem(spacerItem6f)
         self.verticalLayout_17f.addWidget(self.splitter_5f)
         self.tabWidget.addTab(self.tab_data_filesf, "")
-
-
-
-
         self.verticalLayout_7.addWidget(self.tabWidget)
         self.sw_observation_type.addWidget(self.pg_media_files)
         self.pg_live = QtWidgets.QWidget()
@@ -519,10 +509,6 @@ class Ui_Form(object):
         self.label_5.setText(_translate("Form", "Scan sampling every (s)"))
         self.label_2.setText(_translate("Form", "Image display duration (s)"))
         self.cbCloseCurrentBehaviorsBetweenVideo.setText(_translate("Form", "Stop ongoing state events between successive media files"))
-
-
-
-
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_player_1), _translate("Form", "Media files"))
         self.label_7.setText(_translate("Form", "Data files to plot"))
         item = self.tw_data_files.horizontalHeaderItem(0)
@@ -548,7 +534,6 @@ class Ui_Form(object):
         self.pb_view_data_head.setText(_translate("Form", "View data from file"))
         self.pb_plot_data.setText(_translate("Form", "Show plot"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_data_files), _translate("Form", "Data files"))
-
         self.label_7f.setText(_translate("Form", "Data files to plot"))
         item = self.tw_data_filesf.horizontalHeaderItem(0)
         item.setText(_translate("Form", "Path"))
@@ -573,8 +558,6 @@ class Ui_Form(object):
         self.pb_view_data_headf.setText(_translate("Form", "View SNIRF data from file"))
         self.pb_plot_dataf.setText(_translate("Form", "Show plot"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_data_filesf), _translate("Form", "SNIRF files"))
-
-
         self.label_4.setText(_translate("Form", "Scan sampling every"))
         self.label_6.setText(_translate("Form", "seconds"))
         self.cb_start_from_current_time.setText(_translate("Form", "Start from current time"))
