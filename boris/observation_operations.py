@@ -42,7 +42,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QDockWidget,
 )
-from PyQt5.QtCore import Qt, QDateTime, QTimer, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QDateTime, QTimer
 from PyQt5.QtGui import QFont, QIcon, QTextCursor
 
 from PyQt5 import QtTest
@@ -807,7 +807,7 @@ def new_observation(self, mode: str = cfg.NEW, obsId: str = "") -> None:
                                     QTableWidgetItem(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA][idx2][cfg.DATA_PLOT_FIELDS[idx3]]),
                                 )
 
-   # plot data
+            # plot data snirf
             if cfg.PLOT_DATA_FNIRS in self.pj[cfg.OBSERVATIONS][obsId]:
                 if self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS]:
                     observationWindow.tw_data_filesf.setRowCount(0)
@@ -858,9 +858,6 @@ def new_observation(self, mode: str = cfg.NEW, obsId: str = "") -> None:
                                     idx3,
                                     QTableWidgetItem(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS][idx2][cfg.DATA_PLOT_FNIRS_FIELDS[idx3]]),
                                 )
-
-
-
 
         if self.pj[cfg.OBSERVATIONS][obsId]["type"] == cfg.IMAGES:
             observationWindow.rb_images.setChecked(True)
@@ -1018,8 +1015,7 @@ def new_observation(self, mode: str = cfg.NEW, obsId: str = "") -> None:
                             observationWindow.tw_data_files.item(row, idx2).text()
                         )
 
-
-         # plot data
+        # plot data snirf
         if observationWindow.tw_data_filesf.rowCount():
             self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS] = {}
             for row in range(observationWindow.tw_data_filesf.rowCount()):
@@ -2136,12 +2132,6 @@ def initialize_new_media_observation(self) -> bool:
 
             count += 1
 
-
-
-
-
-
-
     # external data plot
     if cfg.PLOT_DATA_FNIRS in self.pj[cfg.OBSERVATIONS][self.observationId] and self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS]:
 
@@ -2163,7 +2153,6 @@ def initialize_new_media_observation(self) -> bool:
                     )
                     data_ok = False
                     return False
-
 
                 w1 = plot_data_modulef.Plot_data(
                     data_file_path,
@@ -2261,14 +2250,6 @@ def initialize_new_media_observation(self) -> bool:
                     self.plot_data[count] = w2
 
             count += 1
-
-
-
-
-
-
-
-
 
     # check if "filtered behaviors"
     if cfg.FILTERED_BEHAVIORS in self.pj[cfg.OBSERVATIONS][self.observationId]:
