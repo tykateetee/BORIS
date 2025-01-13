@@ -133,6 +133,8 @@ class Observation(QDialog, Ui_Form):
         self.rb_live.toggled.connect(self.obs_type_changed)
         self.rb_images.toggled.connect(self.obs_type_changed)
 
+
+
         # button menu for media
         menu_items = [
             "media abs path|with absolute path",
@@ -151,6 +153,8 @@ class Observation(QDialog, Ui_Form):
 
         self.pbRemoveVideo.clicked.connect(self.remove_media)
 
+
+
         # button menu for data file
         data_menu_items = [
             "data abs path|with absolute path",
@@ -168,6 +172,28 @@ class Observation(QDialog, Ui_Form):
             "images rel path|with relative path",
         ]
 
+
+
+
+       # button menu for data file fnirs
+        data_menu_itemsf = [
+            "data abs path|with absolute path",
+            "data rel path|with relative path",
+        ]
+
+        menu_dataf = QMenu()
+        menu_dataf.triggered.connect(lambda x: self.add_data_filef(mode=x.statusTip()))
+        self.add_button_menu(data_menu_itemsf, menu_dataf)
+        self.pb_add_data_filef.setMenu(menu_dataf)
+
+        # button menu for images
+        images_menu_items = [
+            "images abs path|with absolute path",
+            "images rel path|with relative path",
+        ]
+
+
+
         menu_images = QMenu()
         menu_images.triggered.connect(lambda x: self.add_images_directory(mode=x.statusTip()))
         self.add_button_menu(images_menu_items, menu_images)
@@ -176,6 +202,11 @@ class Observation(QDialog, Ui_Form):
         self.pb_remove_data_file.clicked.connect(self.remove_data_file)
         self.pb_view_data_head.clicked.connect(self.view_data_file_head_tail)
         self.pb_plot_data.clicked.connect(self.plot_data_file)
+
+        self.pb_remove_data_filef.clicked.connect(self.remove_data_filef)
+        self.pb_view_data_headf.clicked.connect(self.view_data_file_head_tailf)
+        self.pb_plot_dataf.clicked.connect(self.plot_data_filef)
+
 
         self.pb_use_media_file_name_as_obsid.clicked.connect(self.use_media_file_name_as_obsid)
         self.pb_use_img_dir_as_obsid.clicked.connect(self.use_img_dir_as_obsid)
@@ -192,6 +223,8 @@ class Observation(QDialog, Ui_Form):
         self.pbCancel.clicked.connect(self.pbCancel_clicked)
 
         self.tw_data_files.cellDoubleClicked[int, int].connect(self.tw_data_files_cellDoubleClicked)
+        self.tw_data_filesf.cellDoubleClicked[int, int].connect(self.tw_data_filesf_cellDoubleClicked)
+
 
         self.mediaDurations, self.mediaFPS, self.mediaHasVideo, self.mediaHasAudio, self.media_creation_time = {}, {}, {}, {}, {}
 
@@ -435,6 +468,37 @@ class Observation(QDialog, Ui_Form):
             else:
                 QMessageBox.critical(self, cfg.programName, "Select the columns to plot (time,value)")
 
+
+
+    def tw_data_filesf_cellDoubleClicked(self, row, column):
+        """
+        double click on "Converters column"
+        """
+        return
+    
+        # TODO - reimplement
+        # if column == cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX:
+        #     if self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_COLUMNS_IDX).text():
+        #         w = AssignConverter(
+        #             self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_COLUMNS_IDX).text(),
+        #             self.converters,
+        #             eval(self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text())
+        #             if self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text()
+        #             else "",
+        #         )
+
+        #         if w.exec_():
+        #             d = {}
+        #             for col_idx, cb in zip(self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_COLUMNS_IDX).text().split(","), w.cbb):
+        #                 if cb.currentText() != "None":
+        #                     d[col_idx] = cb.currentText()
+        #             self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).setText(str(d))
+        #     else:
+        #         QMessageBox.critical(self, cfg.programName, "Select the columns to plot (time,value)")
+
+
+
+
     def plot_data_file(self):
         """
         show plot
@@ -512,6 +576,90 @@ class Observation(QDialog, Ui_Form):
             self.pb_plot_data.setText("Close plot")
         else:
             QMessageBox.warning(self, cfg.programName, "Select a data file")
+
+
+
+    def plot_data_filef(self):
+        """
+        show plot
+        check if data can be plotted
+        """
+
+        if self.pb_plot_data.text() != "Show plot":
+            self.test.close_plot()
+            self.text = None
+            # update button text
+            self.pb_plot_data.setText("Show plot")
+            return
+
+        if self.tw_data_filesf.selectedIndexes() or self.tw_data_filesf.rowCount() == 1:
+            if self.tw_data_filesf.rowCount() == 1:
+                row_idx = 0
+            else:
+                row_idx = self.tw_data_filesf.selectedIndexes()[0].row()
+
+            filename = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_FILEPATH_IDX).text()
+            columns_to_plot = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_COLUMNS_IDX).text()
+            plot_title = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_PLOTTITLE_IDX).text()
+
+            # # load converters in dictionary
+            # if self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text():
+            #     column_converter = eval(self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text())
+            # else:
+            #     column_converter = {}
+
+            yaxis_title=  self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_YAXIS_TITLE_IDX).text()
+            xaxis_top_title = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_XAXIS_TOP_TITLE_IDX).text()
+            time_offset = float(self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX).text())
+            xaxis_bottom_title = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_XAXIS_BOTTOM_TITLE_IDX).text()
+
+            substract_first_value = self.tw_data_filesf.cellWidget(row_idx, cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX).currentText()
+
+            plot_color = self.tw_data_filesf.cellWidget(row_idx, cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX).currentText()
+
+            data_file_path = project_functions.full_path(filename, self.project_path)
+
+            if not data_file_path:
+                QMessageBox.critical(
+                    self,
+                    cfg.programName,
+                    (
+                        f"Data file not found:\n{filename}\n"
+                        "If the file path is not stored the data file "
+                        "must be in the same directory than your project"
+                    ),
+                )
+                return
+
+            self.test = plot_data_module.Plot_data(
+                data_file_path,
+                xaxis_top_title,  # time interval
+                time_offset,  # time offset
+                plot_color,  # plot style
+                plot_title,  # plot title
+                yaxis_title,
+                columns_to_plot,
+                substract_first_value,
+                self.converters,
+                column_converter,
+                log_level=logging.getLogger().getEffectiveLevel(),
+            )
+
+            if self.test.error_msg:
+                QMessageBox.critical(self, cfg.programName, f"Impossible to plot data:\n{self.test.error_msg}")
+                self.test = None
+                return
+
+            # self.test.setWindowFlags(self.test.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.test.show()
+            self.test.update_plot(0)
+            # update button text
+            self.pb_plot_data.setText("Close plot")
+
+
+        else:
+            QMessageBox.warning(self, cfg.programName, "Select a data file")
+
 
     def add_data_file(self, mode: str):
         """
@@ -675,6 +823,177 @@ class Observation(QDialog, Ui_Form):
         combobox.addItems(cfg.DATA_PLOT_STYLES)
         self.tw_data_files.setCellWidget(self.tw_data_files.rowCount() - 1, cfg.PLOT_DATA_PLOTCOLOR_IDX, combobox)
 
+
+
+
+
+    def add_data_filef(self, mode: str):
+        """
+        user select a data file to be plotted synchronously with media file
+
+        Args:
+            mode (str): statusTip() data abs path / data rel path
+        """
+
+        if mode.split("|")[0] not in (
+            "data abs path",
+            "data rel path",
+        ):
+            QMessageBox.critical(
+                self,
+                cfg.programName,
+                (f"Wrong mode to add a data file {mode}"),
+            )
+            return
+
+        # check if project saved
+        if (" w/o" in mode or " rel " in mode) and (not self.project_file_name):
+            QMessageBox.critical(
+                self,
+                cfg.programName,
+                ("It is not possible to add a data file with a relative path if the project is not already saved"),
+            )
+            return
+
+        # limit to 2 files
+        if self.tw_data_filesf.rowCount() >= 2:
+            QMessageBox.warning(
+                self,
+                cfg.programName,
+                ("It is not yet possible to plot more than 2 external data sources" "This limitation will be removed in future"),
+            )
+            return
+
+
+        fd = QFileDialog()
+        fd.setDirectory(os.path.expanduser("~") if (" abs " in mode) else str(pl.Path(self.project_path).parent))
+
+        fn = fd.getOpenFileName(self, "Add SNIRF file", "", "SNIRF Files (*.snirf)")
+        file_name = fn[0] if type(fn) is tuple else fn
+
+        if not file_name:
+            return
+
+        import mne
+        from io import StringIO
+
+        snirf_data = mne.io.read_raw_snirf(file_name)
+
+        if snirf_data is None or len(snirf_data.times) == 0:
+            QMessageBox.critical(self, cfg.programName, f"Error on file {file_name}!")
+            return
+
+        raw_data = snirf_data.get_data()
+        channel_names = snirf_data.info['ch_names']
+        df1 = pd.DataFrame(raw_data.T, columns=channel_names)
+        csv_string = df1.to_csv(index=False)
+
+
+        w = dialog.View_dataf()
+        w.setWindowTitle("View data")
+
+
+        w.tw.setRowCount(len(df1))
+        w.tw.setColumnCount(len(df1.columns))
+
+
+        for col_idx, header in enumerate(df1.columns):
+            item = QTableWidgetItem(str(header))
+            item.setFlags(Qt.ItemIsEnabled)
+            w.tw.setItem(0, col_idx, item)
+
+        for idx, row in df1.iterrows():
+            for col_idx, v in enumerate(row):
+                item = QTableWidgetItem(str(v))
+                item.setFlags(Qt.ItemIsEnabled)
+                w.tw.setItem(idx+1, col_idx, item)
+
+
+        # stats
+        try:
+            df = pd.read_csv(StringIO(csv_string), sep=',', header=0)
+            df.columns = range(1, len(df.columns) + 1)
+            stats_out = str(df.describe())
+        except Exception:
+            stats_out = "Not available"
+
+        w.stats.setPlainText(stats_out)
+
+        while True:
+            flag_ok = True
+            if w.exec_():
+                columns_to_plot = w.le.text().replace(" ", "")
+                for col in columns_to_plot.split(","):
+                    try:
+                        col_idx = int(col)
+                    except ValueError:
+                        QMessageBox.critical(self, cfg.programName, f"<b>{col}</b> does not seem to be a column index")
+                        flag_ok = False
+                        break
+                    if col_idx <= 0 or col_idx > len(df1):
+                        QMessageBox.critical(self, cfg.programName, f"<b>{col}</b> is not a valid column index")
+                        flag_ok = False
+                        break
+                if flag_ok:
+                    break
+            else:
+                return
+
+        else:
+            return
+        
+
+        self.tw_data_filesf.setRowCount(self.tw_data_filesf.rowCount() + 1)
+
+        if " rel " in mode:
+            try:
+                file_path = str(pl.Path(file_name).relative_to(pl.Path(self.project_path).parent))
+            except ValueError:
+                QMessageBox.critical(
+                    self,
+                    cfg.programName,
+                    f"The directory <b>{pl.Path(file_name).parent}</b> is not contained in <b>{pl.Path(self.project_path).parent}</b>.",
+                )
+                return
+
+        else:  # save absolute path
+            file_path = file_name
+
+        QMessageBox.critical(self, cfg.programName, f"<b>{file_path}</b>")
+
+
+        for col_idx, value in zip(
+            [
+                cfg.PLOT_DATA_FNIRS_FILEPATH_IDX,
+                cfg.PLOT_DATA_FNIRS_COLUMNS_IDX,
+                cfg.PLOT_DATA_FNIRS_PLOTTITLE_IDX,
+                cfg.PLOT_DATA_FNIRS_YAXIS_TITLE_IDX,
+                cfg.PLOT_DATA_FNIRS_XAXIS_BOTTOM_TITLE_IDX,
+                cfg.PLOT_DATA_FNIRS_XAXIS_TOP_TITLE_IDX,
+                cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX,
+            ],
+            [file_path, columns_to_plot, "fNIRS Data", "Value", "Row Number", "Time (s)", "0"],
+        ):
+            item = QTableWidgetItem(value)
+            # if col_idx == cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX:
+            #     item.setFlags(Qt.ItemIsEnabled)
+            #     item.setBackground(QColor(230, 230, 230))
+            self.tw_data_filesf.setItem(self.tw_data_filesf.rowCount() - 1, col_idx, item)
+
+        # substract first value
+        combobox = QComboBox()
+        combobox.addItems(["True", "False"])
+        self.tw_data_filesf.setCellWidget(self.tw_data_filesf.rowCount() - 1, cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX, combobox)
+
+        # plot line color
+        combobox = QComboBox()
+        combobox.addItems(cfg.DATA_PLOT_STYLES)
+        self.tw_data_filesf.setCellWidget(self.tw_data_filesf.rowCount() - 1, cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX, combobox)
+
+
+
+
+
     def view_data_file_head_tail(self) -> None:
         """
         view first and last rows of data file
@@ -691,6 +1010,78 @@ class Observation(QDialog, Ui_Form):
                 self.tw_data_files.item(self.tw_data_files.selectedIndexes()[0].row(), 0).text(), self.project_path
             )
             columns_to_plot = self.tw_data_files.item(self.tw_data_files.selectedIndexes()[0].row(), 1).text()
+
+        file_parameters = util.check_txt_file(data_file_path)
+
+        if "error" in file_parameters:
+            QMessageBox.critical(self, cfg.programName, f"Error on file {data_file_path}: {file_parameters['error']}")
+            return
+        header, footer = util.return_file_header_footer(data_file_path, file_row_number=file_parameters["rows number"], row_number=5)
+
+        if not header:
+            QMessageBox.critical(self, cfg.programName, f"Error on file {pl.Path(data_file_path).name}")
+            return
+
+        w = dialog.View_data()
+        w.setWindowTitle("View data")
+        w.lb.setText(f"View first and last rows of <b>{pl.Path(data_file_path).name}</b> file")
+        w.pbOK.setText(cfg.CLOSE)
+        w.label.setText("Index of columns to plot")
+        w.le.setEnabled(False)
+        w.le.setText(columns_to_plot)
+        w.pbCancel.setVisible(False)
+
+        w.tw.setColumnCount(file_parameters["fields number"])
+        if footer:
+            hf = header + [file_parameters["separator"].join(["..."] * file_parameters["fields number"])] + footer
+            w.tw.setRowCount(len(header) + len(footer) + 1)
+        else:
+            hf = header
+            w.tw.setRowCount(len(header))
+
+        for idx, row in enumerate(hf):
+            for col, v in enumerate(row.split(file_parameters["separator"])):
+                item = QTableWidgetItem(v)
+                item.setFlags(Qt.ItemIsEnabled)
+                w.tw.setItem(idx, col, item)
+
+        # stats
+        try:
+            df = pd.read_csv(
+                data_file_path,
+                sep=file_parameters["separator"],
+                header=None if not file_parameters["has header"] else [0],
+            )
+            # set columns names to based 1 index
+            if not file_parameters["has header"]:
+                df.columns = range(1, len(df.columns) + 1)
+
+            stats_out = str(df.describe())
+        except Exception:
+            stats_out = "Not available"
+        w.stats.setPlainText(stats_out)
+
+        w.exec_()
+
+
+
+
+    def view_data_file_head_tailf(self) -> None:
+        """
+        view first and last rows of data file
+        """
+
+        if not self.tw_data_filesf.selectedIndexes() and self.tw_data_filesf.rowCount() != 1:
+            QMessageBox.warning(self, cfg.programName, "Select a data file")
+
+        if self.tw_data_filesf.rowCount() == 1:
+            data_file_path = project_functions.full_path(self.tw_data_filesf.item(0, 0).text(), self.project_path)
+            columns_to_plot = self.tw_data_filesf.item(0, 1).text()
+        else:  #  selected file
+            data_file_path = project_functions.full_path(
+                self.tw_data_filesf.item(self.tw_data_filesf.selectedIndexes()[0].row(), 0).text(), self.project_path
+            )
+            columns_to_plot = self.tw_data_filesf.item(self.tw_data_filesf.selectedIndexes()[0].row(), 1).text()
 
         file_parameters = util.check_txt_file(data_file_path)
 
@@ -1060,6 +1451,20 @@ class Observation(QDialog, Ui_Form):
                         ),
                     )
                     return False
+                
+            for row in range(self.tw_data_filesf.rowCount()):
+                if not is_numeric(self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX).text()):
+                    QMessageBox.critical(
+                        self,
+                        cfg.programName,
+                        (
+                            "The external data file start value "
+                            f"<b>{self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX).text()}</b>"
+                            " is not recognized as a numeric value.<br>"
+                            "Use decimal number of seconds (e.g. -58.5 or 32)"
+                        ),
+                    )
+                    return False
 
             # check media creation time tag in metadata
             # Disable because the check will be made at the oservation start
@@ -1306,6 +1711,7 @@ class Observation(QDialog, Ui_Form):
 
                 self.twVideo1.setItem(self.twVideo1.rowCount() - 1, col_idx, item)
 
+
     def remove_data_file(self):
         """
         remove all selected data file from list widget
@@ -1316,6 +1722,19 @@ class Observation(QDialog, Ui_Form):
                 self.tw_data_files.removeRow(row)
         else:
             QMessageBox.warning(self, cfg.programName, "No data file selected")
+
+
+    def remove_data_filef(self):
+        """
+        remove all selected data file from list widget
+        """
+        if self.tw_data_filesf.selectedIndexes():
+            rows_to_delete = set([x.row() for x in self.tw_data_filesf.selectedIndexes()])
+            for row in sorted(rows_to_delete, reverse=True):
+                self.tw_data_filesf.removeRow(row)
+        else:
+            QMessageBox.warning(self, cfg.programName, "No data file selected")
+
 
     def remove_media(self):
         """
