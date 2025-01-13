@@ -183,9 +183,7 @@ DATA_PLOT_FIELDS = {
     PLOT_DATA_SUBSTRACT1STVALUE_IDX: "substract_first_value",
     PLOT_DATA_PLOTCOLOR_IDX: "color",
 }
-
 DATA_PLOT_STYLES = ["b-", "r-", "g-", "bo", "ro", "go"]
-
 
 PLOT_DATA_FNIRS = "plot_dataf"
 
@@ -210,7 +208,6 @@ DATA_PLOT_FNIRS_FIELDS = {
     PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX: "substract_first_value",
     PLOT_DATA_FNIRS_PLOTCOLOR_IDX: "color",
 }
-
 DATA_PLOT_FNIRS_STYLES = ["b-", "r-", "g-", "bo", "ro", "go"]
 
 TIME = "time"
