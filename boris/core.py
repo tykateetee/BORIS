@@ -69,6 +69,7 @@ from PyQt5.QtCore import (
     QAbstractTableModel,
     QT_VERSION_STR,
     PYQT_VERSION_STR,
+    QObject
 )
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QKeyEvent, QDesktopServices, QColor, QPainter, QPolygon
 from PyQt5.QtMultimedia import QSound
@@ -270,6 +271,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     liveObservationStarted = False
     # data structures for external data plot
     plot_data: dict = {}
+    plot_dataf: dict = {}
     ext_data_timer_list: list = []
     projectFileName: str = ""
     mediaTotalLength = None
@@ -576,6 +578,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if project_functions.remove_data_files_path(self.pj, self.projectFileName):
             self.project_changed()
+
+
+    def remove_data_filesf_path(self):
+        """
+        remove data files path
+        """
+
+        if (
+            dialog.MessageDialog(
+                cfg.programName,
+                ("Removing the path of external data files is irreversible.<br>" "Are you sure to continue?"),
+                [cfg.YES, cfg.NO],
+            )
+            == cfg.NO
+        ):
+            return
+
+        if project_functions.remove_data_filesf_path(self.pj, self.projectFileName):
+            self.project_changed()
+
+            
 
     def set_media_files_path_relative_to_project_dir(self):
         """
@@ -1216,6 +1239,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         update real-time events plot (if any)
         """
+        for idx in self.plot_data:
+            self.timer_plot_data_out(self.plot_data[idx])
         if hasattr(self, "plot_events"):
             if not self.plot_events.visibleRegion().isEmpty():
                 self.plot_events.events_list = self.pj[cfg.OBSERVATIONS][self.observationId][cfg.EVENTS]
@@ -1286,6 +1311,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         for idx in self.plot_data:
             self.plot_data[idx].hide()
+
+    def show_fNIRS_data(self):
+        """
+        show plot of data files (if any)
+        """
+        for idx in self.plot_dataf:
+            self.plot_dataf[idx].show()
+
+    def hide_fNIRS_data(self):
+        """
+        show plot of data files (if any)
+        """
+        for idx in self.plot_dataf:
+            self.plot_dataf[idx].hide()
 
     def modifiers_coding_map_creator(self):
         """
@@ -2494,6 +2533,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             for pd in self.plot_data:
                 self.plot_data[pd].close_plot()
+
+        except Exception:
+            pass
+
+        try:
+            for pd in self.plot_dataf:
+                self.plot_dataf[pd].close_plot()
 
         except Exception:
             pass
@@ -4366,7 +4412,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             msg += (
                 f"Media position: <b>{util.convertTime(self.timeFormat, current_media_time_pos)}</b> / "
-                f"{util.convertTime(self.timeFormat, current_media_duration)} This is a good test me: <b>{frame_idx}</b>"
+                f"{util.convertTime(self.timeFormat, current_media_duration)} frame: <b>{frame_idx}</b>"
             )
 
             # with time offset
