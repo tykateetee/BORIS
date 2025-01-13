@@ -133,8 +133,6 @@ class Observation(QDialog, Ui_Form):
         self.rb_live.toggled.connect(self.obs_type_changed)
         self.rb_images.toggled.connect(self.obs_type_changed)
 
-
-
         # button menu for media
         menu_items = [
             "media abs path|with absolute path",
@@ -153,8 +151,6 @@ class Observation(QDialog, Ui_Form):
 
         self.pbRemoveVideo.clicked.connect(self.remove_media)
 
-
-
         # button menu for data file
         data_menu_items = [
             "data abs path|with absolute path",
@@ -172,10 +168,7 @@ class Observation(QDialog, Ui_Form):
             "images rel path|with relative path",
         ]
 
-
-
-
-       # button menu for data file fnirs
+        # button menu for data file snirf
         data_menu_itemsf = [
             "data abs path|with absolute path",
             "data rel path|with relative path",
@@ -192,8 +185,6 @@ class Observation(QDialog, Ui_Form):
             "images rel path|with relative path",
         ]
 
-
-
         menu_images = QMenu()
         menu_images.triggered.connect(lambda x: self.add_images_directory(mode=x.statusTip()))
         self.add_button_menu(images_menu_items, menu_images)
@@ -206,8 +197,6 @@ class Observation(QDialog, Ui_Form):
         self.pb_remove_data_filef.clicked.connect(self.remove_data_filef)
         self.pb_view_data_headf.clicked.connect(self.view_data_file_head_tailf)
         self.pb_plot_dataf.clicked.connect(self.plot_data_filef)
-
-
         self.pb_use_media_file_name_as_obsid.clicked.connect(self.use_media_file_name_as_obsid)
         self.pb_use_img_dir_as_obsid.clicked.connect(self.use_img_dir_as_obsid)
 
@@ -224,7 +213,6 @@ class Observation(QDialog, Ui_Form):
 
         self.tw_data_files.cellDoubleClicked[int, int].connect(self.tw_data_files_cellDoubleClicked)
         self.tw_data_filesf.cellDoubleClicked[int, int].connect(self.tw_data_filesf_cellDoubleClicked)
-
 
         self.mediaDurations, self.mediaFPS, self.mediaHasVideo, self.mediaHasAudio, self.media_creation_time = {}, {}, {}, {}, {}
 
@@ -468,8 +456,6 @@ class Observation(QDialog, Ui_Form):
             else:
                 QMessageBox.critical(self, cfg.programName, "Select the columns to plot (time,value)")
 
-
-
     def tw_data_filesf_cellDoubleClicked(self, row, column):
         """
         double click on "Converters column"
@@ -495,9 +481,6 @@ class Observation(QDialog, Ui_Form):
         #             self.tw_data_filesf.item(row, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).setText(str(d))
         #     else:
         #         QMessageBox.critical(self, cfg.programName, "Select the columns to plot (time,value)")
-
-
-
 
     def plot_data_file(self):
         """
@@ -577,8 +560,6 @@ class Observation(QDialog, Ui_Form):
         else:
             QMessageBox.warning(self, cfg.programName, "Select a data file")
 
-
-
     def plot_data_filef(self):
         """
         show plot
@@ -602,7 +583,7 @@ class Observation(QDialog, Ui_Form):
             columns_to_plot = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_COLUMNS_IDX).text()
             plot_title = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_PLOTTITLE_IDX).text()
 
-            # # load converters in dictionary
+            # # load converters in dictionary - is this needed?
             # if self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text():
             #     column_converter = eval(self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX).text())
             # else:
@@ -641,7 +622,7 @@ class Observation(QDialog, Ui_Form):
                 columns_to_plot,
                 substract_first_value,
                 self.converters,
-                column_converter,
+                xaxis_bottom_title,
                 log_level=logging.getLogger().getEffectiveLevel(),
             )
 
@@ -656,10 +637,8 @@ class Observation(QDialog, Ui_Form):
             # update button text
             self.pb_plot_data.setText("Close plot")
 
-
         else:
             QMessageBox.warning(self, cfg.programName, "Select a data file")
-
 
     def add_data_file(self, mode: str):
         """
@@ -823,10 +802,6 @@ class Observation(QDialog, Ui_Form):
         combobox.addItems(cfg.DATA_PLOT_STYLES)
         self.tw_data_files.setCellWidget(self.tw_data_files.rowCount() - 1, cfg.PLOT_DATA_PLOTCOLOR_IDX, combobox)
 
-
-
-
-
     def add_data_filef(self, mode: str):
         """
         user select a data file to be plotted synchronously with media file
@@ -864,7 +839,6 @@ class Observation(QDialog, Ui_Form):
             )
             return
 
-
         fd = QFileDialog()
         fd.setDirectory(os.path.expanduser("~") if (" abs " in mode) else str(pl.Path(self.project_path).parent))
 
@@ -888,10 +862,8 @@ class Observation(QDialog, Ui_Form):
         df1 = pd.DataFrame(raw_data.T, columns=channel_names)
         csv_string = df1.to_csv(index=False)
 
-
         w = dialog.View_dataf()
         w.setWindowTitle("View data")
-
 
         w.tw.setRowCount(len(df1))
         w.tw.setColumnCount(len(df1.columns))
@@ -907,7 +879,6 @@ class Observation(QDialog, Ui_Form):
                 item = QTableWidgetItem(str(v))
                 item.setFlags(Qt.ItemIsEnabled)
                 w.tw.setItem(idx+1, col_idx, item)
-
 
         # stats
         try:
@@ -941,7 +912,6 @@ class Observation(QDialog, Ui_Form):
 
         else:
             return
-        
 
         self.tw_data_filesf.setRowCount(self.tw_data_filesf.rowCount() + 1)
 
@@ -960,7 +930,6 @@ class Observation(QDialog, Ui_Form):
             file_path = file_name
 
         QMessageBox.critical(self, cfg.programName, f"<b>{file_path}</b>")
-
 
         for col_idx, value in zip(
             [
@@ -989,10 +958,6 @@ class Observation(QDialog, Ui_Form):
         combobox = QComboBox()
         combobox.addItems(cfg.DATA_PLOT_STYLES)
         self.tw_data_filesf.setCellWidget(self.tw_data_filesf.rowCount() - 1, cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX, combobox)
-
-
-
-
 
     def view_data_file_head_tail(self) -> None:
         """
@@ -1062,9 +1027,6 @@ class Observation(QDialog, Ui_Form):
         w.stats.setPlainText(stats_out)
 
         w.exec_()
-
-
-
 
     def view_data_file_head_tailf(self) -> None:
         """
@@ -1711,7 +1673,6 @@ class Observation(QDialog, Ui_Form):
 
                 self.twVideo1.setItem(self.twVideo1.rowCount() - 1, col_idx, item)
 
-
     def remove_data_file(self):
         """
         remove all selected data file from list widget
@@ -1723,7 +1684,6 @@ class Observation(QDialog, Ui_Form):
         else:
             QMessageBox.warning(self, cfg.programName, "No data file selected")
 
-
     def remove_data_filef(self):
         """
         remove all selected data file from list widget
@@ -1734,7 +1694,6 @@ class Observation(QDialog, Ui_Form):
                 self.tw_data_filesf.removeRow(row)
         else:
             QMessageBox.warning(self, cfg.programName, "No data file selected")
-
 
     def remove_media(self):
         """
