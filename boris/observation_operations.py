@@ -42,7 +42,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QDockWidget,
 )
-from PyQt5.QtCore import Qt, QDateTime, QTimer
+from PyQt5.QtCore import Qt, QDateTime, QTimer, pyqtSignal, QObject
 from PyQt5.QtGui import QFont, QIcon, QTextCursor
 
 from PyQt5 import QtTest
@@ -55,6 +55,7 @@ from . import project_functions
 from . import observation
 from . import utilities as util
 from . import plot_data_module
+from . import plot_data_modulef
 from . import player_dock_widget
 from . import gui_utilities
 from . import video_operations
@@ -806,6 +807,61 @@ def new_observation(self, mode: str = cfg.NEW, obsId: str = "") -> None:
                                     QTableWidgetItem(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA][idx2][cfg.DATA_PLOT_FIELDS[idx3]]),
                                 )
 
+   # plot data
+            if cfg.PLOT_DATA_FNIRS in self.pj[cfg.OBSERVATIONS][obsId]:
+                if self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS]:
+                    observationWindow.tw_data_filesf.setRowCount(0)
+                    for idx2 in util.sorted_keys(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS]):
+                        observationWindow.tw_data_filesf.setRowCount(observationWindow.tw_data_filesf.rowCount() + 1)
+                        for idx3 in cfg.DATA_PLOT_FNIRS_FIELDS:
+                            if idx3 == cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX:
+                                combobox = QComboBox()
+                                combobox.addItems(cfg.DATA_PLOT_FNIRS_STYLES)
+                                combobox.setCurrentIndex(
+                                    cfg.DATA_PLOT_FNIRS_STYLES.index(
+                                        self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS][idx2][cfg.DATA_PLOT_FNIRS_FIELDS[idx3]]
+                                    )
+                                )
+
+                                observationWindow.tw_data_filesf.setCellWidget(
+                                    observationWindow.tw_data_filesf.rowCount() - 1,
+                                    cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX,
+                                    combobox,
+                                )
+                            elif idx3 == cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX:
+                                combobox2 = QComboBox()
+                                combobox2.addItems(["False", "True"])
+                                combobox2.setCurrentIndex(
+                                    ["False", "True"].index(
+                                        self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS][idx2][cfg.DATA_PLOT_FNIRS_FIELDS[idx3]]
+                                    )
+                                )
+
+                                observationWindow.tw_data_filesf.setCellWidget(
+                                    observationWindow.tw_data_filesf.rowCount() - 1,
+                                    cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX,
+                                    combobox2,
+                                )
+                            # elif idx3 == cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX:
+                            #     # convert dict to str
+                            #     observationWindow.tw_data_filesf.setItem(
+                            #         observationWindow.tw_data_filesf.rowCount() - 1,
+                            #         idx3,
+                            #         QTableWidgetItem(
+                            #             str(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS][idx2][cfg.DATA_PLOT_FNIRS_FIELDS[idx3]])
+                            #         ),
+                            #     )
+
+                            else:
+                                observationWindow.tw_data_filesf.setItem(
+                                    observationWindow.tw_data_filesf.rowCount() - 1,
+                                    idx3,
+                                    QTableWidgetItem(self.pj[cfg.OBSERVATIONS][obsId][cfg.PLOT_DATA_FNIRS][idx2][cfg.DATA_PLOT_FNIRS_FIELDS[idx3]]),
+                                )
+
+
+
+
         if self.pj[cfg.OBSERVATIONS][obsId]["type"] == cfg.IMAGES:
             observationWindow.rb_images.setChecked(True)
             observationWindow.lw_images_directory.addItems(self.pj[cfg.OBSERVATIONS][obsId].get(cfg.DIRECTORIES_LIST, []))
@@ -962,6 +1018,31 @@ def new_observation(self, mode: str = cfg.NEW, obsId: str = "") -> None:
                             observationWindow.tw_data_files.item(row, idx2).text()
                         )
 
+
+         # plot data
+        if observationWindow.tw_data_filesf.rowCount():
+            self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS] = {}
+            for row in range(observationWindow.tw_data_filesf.rowCount()):
+                self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS][str(row)] = {}
+                for idx2 in cfg.DATA_PLOT_FNIRS_FIELDS:
+                    if idx2 in [cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX, cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX]:
+                        self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS][str(row)][cfg.DATA_PLOT_FNIRS_FIELDS[idx2]] = (
+                            observationWindow.tw_data_filesf.cellWidget(row, idx2).currentText()
+                        )
+
+                    # elif idx2 == cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX:
+                    #     if observationWindow.tw_data_filesf.item(row, idx2).text():
+                    #         self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS][str(row)][cfg.DATA_PLOT_FNIRS_FIELDS[idx2]] = (
+                    #             observationWindow.tw_data_filesf.item(row, idx2).text()
+                    #         )
+                    #     else:
+                    #         self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS][str(row)][cfg.DATA_PLOT_FNIRS_FIELDS[idx2]] = {}
+
+                    else:
+                        self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.PLOT_DATA_FNIRS][str(row)][cfg.DATA_PLOT_FNIRS_FIELDS[idx2]] = (
+                            observationWindow.tw_data_filesf.item(row, idx2).text()
+                        )
+
         # Close current behaviors between video
         self.pj[cfg.OBSERVATIONS][new_obs_id][cfg.CLOSE_BEHAVIORS_BETWEEN_VIDEOS] = (
             observationWindow.cbCloseCurrentBehaviorsBetweenVideo.isChecked()
@@ -1110,6 +1191,12 @@ def close_observation(self):
         self.liveStartTime = None
 
     if cfg.PLOT_DATA in self.pj[cfg.OBSERVATIONS][self.observationId] and self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA]:
+        for x in self.ext_data_timer_list:
+            x.stop()
+        for pd in self.plot_data:
+            self.plot_data[pd].close_plot()
+
+    if cfg.PLOT_DATA_FNIRS in self.pj[cfg.OBSERVATIONS][self.observationId] and self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS]:
         for x in self.ext_data_timer_list:
             x.stop()
         for pd in self.plot_data:
@@ -2048,6 +2135,140 @@ def initialize_new_media_observation(self) -> bool:
                     self.plot_data[count] = w2
 
             count += 1
+
+
+
+
+
+
+
+    # external data plot
+    if cfg.PLOT_DATA_FNIRS in self.pj[cfg.OBSERVATIONS][self.observationId] and self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS]:
+
+        self.plot_data = {}
+        self.ext_data_timer_list = []
+        count = 0
+        for idx in self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS]:
+            if count == 0:
+                data_ok: bool = True
+                data_file_path = project_functions.full_path(
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["file_path"],
+                    self.projectFileName,
+                )
+                if not data_file_path:
+                    QMessageBox.critical(
+                        self,
+                        cfg.programName,
+                        "Data file not found:\n{}".format(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["file_path"]),
+                    )
+                    data_ok = False
+                    return False
+
+
+                w1 = plot_data_modulef.Plot_data(
+                    data_file_path,
+                    str(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_top_title"]),
+                    str(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["time_offset"]),
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["color"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["yaxis_title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["columns"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["substract_first_value"],
+                    # self.pj[cfg.CONVERTERS] if cfg.CONVERTERS in self.pj else {},
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_bottom_title"],
+                    log_level=logging.getLogger().getEffectiveLevel(),
+                )
+
+                if w1.error_msg:
+                    QMessageBox.critical(
+                        self,
+                        cfg.programName,
+                        (
+                            "Impossible to plot data from file 0:"
+                            f"{os.path.basename(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]['file_path'])}:\n"
+                            f"{w1.error_msg}"
+                        ),
+                    )
+                    del w1
+                    data_ok = False
+                    return False
+
+                if data_ok:
+                    w1.setWindowFlags(Qt.WindowStaysOnTopHint)
+                    w1.sendEvent.connect(self.signal_from_widget)  # keypress event
+
+                    w1.show()
+
+                    self.ext_data_timer_list.append(QTimer())
+                    self.ext_data_timer_list[-1].setInterval(w1.time_out)
+                    self.ext_data_timer_list[-1].timeout.connect(lambda: self.timer_plot_data_out(w1))
+                    self.timer_plot_data_out(w1)
+
+                    self.plot_data[count] = w1
+
+            if count == 1:
+                data_ok: bool = True
+                data_file_path = project_functions.full_path(
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["file_path"],
+                    self.projectFileName,
+                )
+                if not data_file_path:
+                    QMessageBox.critical(
+                        self,
+                        cfg.programName,
+                        "Data file not found:\n{}".format(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["file_path"]),
+                    )
+                    data_ok = False
+                    # return False
+
+                w2 = plot_data_modulef.Plot_data(
+                    data_file_path,
+                    str(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_top_title"]),
+                    str(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["time_offset"]),
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["color"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["yaxis_title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["columns"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["substract_first_value"],
+                    # self.pj[cfg.CONVERTERS] if cfg.CONVERTERS in self.pj else {},
+                    self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_bottom_title"],
+                    log_level=logging.getLogger().getEffectiveLevel(),
+                )
+
+                if w2.error_msg:
+                    QMessageBox.critical(
+                        self,
+                        cfg.programName,
+                        (
+                            f"Impossible to plot data from file 1"
+                            f"{os.path.basename(self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]['file_path'])}:\n{w2.error_msg}"
+                        ),
+                    )
+                    del w2
+                    data_ok = False
+                    # return False
+
+                if data_ok:
+                    w2.setWindowFlags(Qt.WindowStaysOnTopHint)
+                    w2.sendEvent.connect(self.signal_from_widget)
+
+                    w2.show()
+                    self.ext_data_timer_list.append(QTimer())
+                    self.ext_data_timer_list[-1].setInterval(w2.time_out)
+                    self.ext_data_timer_list[-1].timeout.connect(lambda: self.timer_plot_data_out(w2))
+                    self.timer_plot_data_out(w2)
+
+                    self.plot_data[count] = w2
+
+            count += 1
+
+
+
+
+
+
+
+
 
     # check if "filtered behaviors"
     if cfg.FILTERED_BEHAVIORS in self.pj[cfg.OBSERVATIONS][self.observationId]:
