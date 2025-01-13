@@ -380,8 +380,8 @@ def txt2np_array(
         return False, f"{sys.exc_info()[1]}", np.array([])
 
     # check if first value must be substracted
-    # if substract_first_value == "True":
-    #     data[:, 0] -= data[:, 0][0]
+    if substract_first_value == "True":
+        data[:, 0] -= data[:, 0][0]
 
     return True, "", data
 
