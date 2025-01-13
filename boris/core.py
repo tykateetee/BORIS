@@ -69,7 +69,6 @@ from PyQt5.QtCore import (
     QAbstractTableModel,
     QT_VERSION_STR,
     PYQT_VERSION_STR,
-    QObject
 )
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QKeyEvent, QDesktopServices, QColor, QPainter, QPolygon
 from PyQt5.QtMultimedia import QSound
@@ -2533,14 +2532,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             for pd in self.plot_data:
                 self.plot_data[pd].close_plot()
-
         except Exception:
             pass
 
         try:
             for pd in self.plot_dataf:
                 self.plot_dataf[pd].close_plot()
-
         except Exception:
             pass
         """
