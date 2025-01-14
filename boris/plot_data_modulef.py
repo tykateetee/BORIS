@@ -122,7 +122,6 @@ class Plot_data(QWidget):
         result = self._load_data(file_name, columns_to_plot, substract_first_value, column_converter)
 
         if not result:
-            self.error_msg = "Whoops"
             return
         
         min_time_step = 50
@@ -170,6 +169,9 @@ class Plot_data(QWidget):
         else:
             return False
 
+    def zoom(self, z):
+        return
+    
     # def zoom(self, z):
     #     if z == -1 and self.plotter.interval <= 10:
     #         return
