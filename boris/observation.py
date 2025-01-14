@@ -929,8 +929,6 @@ class Observation(QDialog, Ui_Form):
         else:  # save absolute path
             file_path = file_name
 
-        QMessageBox.critical(self, cfg.programName, f"<b>{file_path}</b>")
-
         for col_idx, value in zip(
             [
                 cfg.PLOT_DATA_FNIRS_FILEPATH_IDX,
