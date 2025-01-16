@@ -1022,10 +1022,6 @@ class Observation(QDialog, Ui_Form):
 
         w.exec_()
 
-
-
-
-
     def view_data_file_head_tailf(self) -> None:
         """
         view first and last rows of data file
@@ -1077,11 +1073,9 @@ class Observation(QDialog, Ui_Form):
             stats_out = str(df.describe())
         except Exception:
             stats_out = "Not available"
-
         w.stats.setPlainText(stats_out)
 
         w.exec_()
-
 
     def extract_wav(self):
         """
