@@ -2153,6 +2153,7 @@ def initialize_new_media_observation(self) -> bool:
                     )
                     data_ok = False
                     return False
+                
 
                 w1 = plot_data_modulef.Plot_data(
                     data_file_path,
@@ -2165,6 +2166,8 @@ def initialize_new_media_observation(self) -> bool:
                     # self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["substract_first_value"],
                     # self.pj[cfg.CONVERTERS] if cfg.CONVERTERS in self.pj else {},
                     self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_bottom_title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId],
+                    self.pj[cfg.ETHOGRAM],
                     log_level=logging.getLogger().getEffectiveLevel(),
                 )
 
@@ -2221,6 +2224,8 @@ def initialize_new_media_observation(self) -> bool:
                     # self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["substract_first_value"],
                     # self.pj[cfg.CONVERTERS] if cfg.CONVERTERS in self.pj else {},
                     self.pj[cfg.OBSERVATIONS][self.observationId][cfg.PLOT_DATA_FNIRS][idx]["xaxis_bottom_title"],
+                    self.pj[cfg.OBSERVATIONS][self.observationId],
+                    self.pj[cfg.ETHOGRAM],
                     log_level=logging.getLogger().getEffectiveLevel(),
                 )
 
