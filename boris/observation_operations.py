@@ -2153,7 +2153,6 @@ def initialize_new_media_observation(self) -> bool:
                     )
                     data_ok = False
                     return False
-                
 
                 w1 = plot_data_modulef.Plot_data(
                     data_file_path,
