@@ -1331,6 +1331,51 @@ class View_dataf(QDialog):
 
         self.resize(800, 640)
 
+
+class View_data_statsf(QDialog):
+    """
+    widget for visualizing rows of data file
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("")
+
+        vbox = QVBoxLayout()
+
+        self.lb = QLabel("")
+        vbox.addWidget(self.lb)
+
+        self.tw = QTableWidget()
+        self.tw.verticalHeader().hide()
+        vbox.addWidget(self.tw)
+
+        vbox.addWidget(QLabel("Descriptive statistics"))
+
+        self.stats = QPlainTextEdit()
+        font = QFont()
+        font.setFamily("Monospace")
+        self.stats.setFont(font)
+
+        vbox.addWidget(self.stats)
+
+        hbox2 = QHBoxLayout()
+
+        hbox2.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+
+        self.pbCancel = QPushButton("Cancel", clicked=self.reject)
+        hbox2.addWidget(self.pbCancel)
+
+        self.pbOK = QPushButton("OK", clicked=self.accept)
+        hbox2.addWidget(self.pbOK)
+
+        vbox.addLayout(hbox2)
+
+        self.setLayout(vbox)
+
+        self.resize(640, 640)
+
 class View_explore_project_results(QWidget):
     """
     widget for visualizing results of explore project
