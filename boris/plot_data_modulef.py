@@ -25,16 +25,15 @@ import logging
 import sys
 import mne
 import pandas as pd
-from decimal import Decimal as dec
 
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5.QtCore import pyqtSignal, QEvent, QThread, QObject, pyqtSlot
 from PyQt5.QtWidgets import (
     QSizePolicy,
     QWidget,
-    QPushButton,
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
@@ -67,8 +66,7 @@ class Plot_data(QWidget):
         yaxis_title,
         y_label,
         columns_to_plot,
-        substract_first_value,
-        column_converter,
+        xaxis_bottom_title,
         log_level="",
     ):
         super().__init__()
@@ -77,35 +75,32 @@ class Plot_data(QWidget):
 
         self.setWindowTitle(f"External data: {yaxis_title}")
 
-        self.column_converter = column_converter
+        self.xaxis_bottom_title = xaxis_bottom_title
 
         self.myplot = MyMplCanvas(self)
 
         self.time_out = 10
         self.time_offset = float(time_offset)
 
-        self.button_plus = QPushButton("+", self)
-        self.button_minus = QPushButton("-", self)
-
         self.layout = QVBoxLayout()
+        self.toolbar = NavigationToolbar(self.myplot, self)
 
         self.hlayout1 = QHBoxLayout()
-        self.hlayout1.addWidget(QLabel("Zoom"))
-        self.hlayout1.addWidget(self.button_plus)
-        self.hlayout1.addWidget(self.button_minus)
-        self.hlayout1.addWidget(QLabel("Red = Reach"))
-        self.hlayout1.addWidget(QLabel("Green = Start of Rest"))
+
+        self.hlayout1.addWidget(QLabel("Red vertical lines denote 'Reach'. "))
+        self.hlayout1.addWidget(QLabel("Green vertical lines denote 'Start of Rest'. "))
 
         self.hlayout1.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         self.hlayout2 = QHBoxLayout()
-        self.hlayout2.addWidget(QLabel("Value"))
+        self.hlayout2.addWidget(QLabel("File time in seconds:"))
         self.lb_value = QLabel("")
         self.hlayout2.addWidget(self.lb_value)
         self.hlayout2.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         self.layout.addLayout(self.hlayout1)
         self.layout.addLayout(self.hlayout2)
+        self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.myplot)
 
         self.setLayout(self.layout)
@@ -119,11 +114,12 @@ class Plot_data(QWidget):
         self.y_label = y_label
         self.error_msg = ""
 
-        result = self._load_data(file_name, columns_to_plot, substract_first_value, column_converter)
+        result = self._load_data(file_name, columns_to_plot)
 
         if not result:
             return
         
+        # does not have to do with graph updates
         min_time_step = 50
 
         # plotter and thread are none at the beginning
@@ -140,8 +136,6 @@ class Plot_data(QWidget):
 
         self.plotter.min_time_step = min_time_step
 
-        # interval must be even
-
         self.thread = QThread()
 
         # connect signals
@@ -150,9 +144,6 @@ class Plot_data(QWidget):
         # move to thread and start
         self.plotter.moveToThread(self.thread)
         self.thread.start()
-
-        self.button_minus.clicked.connect(lambda: self.zoom(1))
-        self.button_plus.clicked.connect(lambda: self.zoom(-1))
 
         if min_time_step < 0.2:
             self.time_out = 200
@@ -168,21 +159,6 @@ class Plot_data(QWidget):
             return True
         else:
             return False
-
-    def zoom(self, z):
-        return
-    
-    # def zoom(self, z):
-    #     if z == -1 and self.plotter.interval <= 10:
-    #         return
-
-    #     if z == 1 and self.plotter.interval > 3600:
-    #         return
-
-    #     new_interval = round(self.plotter.interval + z * self.plotter.interval / 2)
-    #     new_interval += 1 if new_interval % 2 else 0
-
-    #     self.plotter.interval = new_interval
 
     def timer_plot_data_out(self, time_):
         self.update_plot(time_)
@@ -213,11 +189,10 @@ class Plot_data(QWidget):
                 self.myplot.axes.set_title(self.yaxis_title)
                 self.myplot.axes.set_xlim(position_start, position_end)
                 self.myplot.axes.set_ylabel(self.y_label, rotation=90, labelpad=2)
-                self.myplot.axes.set_xlabel(self.column_converter, rotation=0, labelpad=2)
+                self.myplot.axes.set_xlabel(self.xaxis_bottom_title, rotation=0, labelpad=2)
                 self.myplot.axes.set_ylim((min_value, max_value))
                 self.myplot.axes.plot(x, y, self.plot_style, linewidth = 0.2)
-                self.black_line = self.myplot.axes.plot([(position_data + self.time_offset)*50, (position_data + self.time_offset)*50], [min_value, max_value], color='black', linewidth=1)[0]
-
+                self.black_line = self.myplot.axes.plot([(position_data + self.time_offset)*50, (position_data + self.time_offset)*50], [min_value, max_value], color='black', linewidth=2)[0]
 
                 ax2 = self.myplot.axes.twiny()  # Create a second x-axis sharing the same y-axis
                 ax2.set_xlim((position_start-self.time_offset), (position_end-(self.time_offset*50))/50)  # Ensure the second x-axis matches the first one
@@ -243,7 +218,7 @@ class Plot_data(QWidget):
             logging.debug(f"error in plotting external data: {sys.exc_info()[1]}")
 
  
-    def _load_data(self, file_name, columns_to_plot, substract_first_value, column_converter):
+    def _load_data(self, file_name, columns_to_plot):
         """
         Load and process data, with specific handling for SNIRF files.
         """
