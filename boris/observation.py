@@ -46,10 +46,13 @@ from PyQt5.QtWidgets import (
 )
 
 from . import config as cfg
-from . import dialog, plot_data_module, project_functions
+from . import dialog, plot_data_module, project_functions, plot_data_modulef
 from . import utilities as util
 from . import gui_utilities
 from .observation_ui import Ui_Form
+
+import mne
+from io import StringIO
 
 
 class AssignConverter(QDialog):
@@ -594,8 +597,6 @@ class Observation(QDialog, Ui_Form):
             time_offset = float(self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX).text())
             xaxis_bottom_title = self.tw_data_filesf.item(row_idx, cfg.PLOT_DATA_FNIRS_XAXIS_BOTTOM_TITLE_IDX).text()
 
-            substract_first_value = self.tw_data_filesf.cellWidget(row_idx, cfg.PLOT_DATA_FNIRS_SUBSTRACT1STVALUE_IDX).currentText()
-
             plot_color = self.tw_data_filesf.cellWidget(row_idx, cfg.PLOT_DATA_FNIRS_PLOTCOLOR_IDX).currentText()
 
             data_file_path = project_functions.full_path(filename, self.project_path)
@@ -612,7 +613,7 @@ class Observation(QDialog, Ui_Form):
                 )
                 return
 
-            self.test = plot_data_module.Plot_data(
+            self.test = plot_data_modulef.Plot_data(
                 data_file_path,
                 xaxis_top_title,  # time interval
                 time_offset,  # time offset
@@ -620,8 +621,6 @@ class Observation(QDialog, Ui_Form):
                 plot_title,  # plot title
                 yaxis_title,
                 columns_to_plot,
-                substract_first_value,
-                self.converters,
                 xaxis_bottom_title,
                 log_level=logging.getLogger().getEffectiveLevel(),
             )
@@ -793,9 +792,9 @@ class Observation(QDialog, Ui_Form):
             self.tw_data_files.setItem(self.tw_data_files.rowCount() - 1, col_idx, item)
 
         # substract first value
-        combobox = QComboBox()
-        combobox.addItems(["True", "False"])
-        self.tw_data_files.setCellWidget(self.tw_data_files.rowCount() - 1, cfg.PLOT_DATA_SUBSTRACT1STVALUE_IDX, combobox)
+        # combobox = QComboBox()
+        # combobox.addItems(["True", "False"])
+        # self.tw_data_files.setCellWidget(self.tw_data_files.rowCount() - 1, cfg.PLOT_DATA_SUBSTRACT1STVALUE_IDX, combobox)
 
         # plot line color
         combobox = QComboBox()
@@ -847,9 +846,6 @@ class Observation(QDialog, Ui_Form):
 
         if not file_name:
             return
-
-        import mne
-        from io import StringIO
 
         snirf_data = mne.io.read_raw_snirf(file_name)
 
@@ -939,7 +935,7 @@ class Observation(QDialog, Ui_Form):
                 cfg.PLOT_DATA_FNIRS_XAXIS_TOP_TITLE_IDX,
                 cfg.PLOT_DATA_FNIRS_TIMEOFFSET_IDX,
             ],
-            [file_path, columns_to_plot, "fNIRS Data", "Value", "Row Number", "Time (s)", "0"],
+            [file_path, columns_to_plot, df1.columns[int(col)-1], "Value", "Row Number", "Time (s)", "0"],
         ):
             item = QTableWidgetItem(value)
             # if col_idx == cfg.PLOT_DATA_FNIRS_CONVERTERS_IDX:
@@ -1026,6 +1022,10 @@ class Observation(QDialog, Ui_Form):
 
         w.exec_()
 
+
+
+
+
     def view_data_file_head_tailf(self) -> None:
         """
         view first and last rows of data file
@@ -1036,64 +1036,52 @@ class Observation(QDialog, Ui_Form):
 
         if self.tw_data_filesf.rowCount() == 1:
             data_file_path = project_functions.full_path(self.tw_data_filesf.item(0, 0).text(), self.project_path)
-            columns_to_plot = self.tw_data_filesf.item(0, 1).text()
         else:  #  selected file
             data_file_path = project_functions.full_path(
                 self.tw_data_filesf.item(self.tw_data_filesf.selectedIndexes()[0].row(), 0).text(), self.project_path
             )
-            columns_to_plot = self.tw_data_filesf.item(self.tw_data_filesf.selectedIndexes()[0].row(), 1).text()
 
-        file_parameters = util.check_txt_file(data_file_path)
+        snirf_data = mne.io.read_raw_snirf(data_file_path)
 
-        if "error" in file_parameters:
-            QMessageBox.critical(self, cfg.programName, f"Error on file {data_file_path}: {file_parameters['error']}")
-            return
-        header, footer = util.return_file_header_footer(data_file_path, file_row_number=file_parameters["rows number"], row_number=5)
-
-        if not header:
-            QMessageBox.critical(self, cfg.programName, f"Error on file {pl.Path(data_file_path).name}")
+        if snirf_data is None or len(snirf_data.times) == 0:
+            QMessageBox.critical(self, cfg.programName, f"Error on file {data_file_path}!")
             return
 
-        w = dialog.View_data()
+        raw_data = snirf_data.get_data()
+        channel_names = snirf_data.info['ch_names']
+        df1 = pd.DataFrame(raw_data.T, columns=channel_names)
+        csv_string = df1.to_csv(index=False)
+
+        w = dialog.View_data_statsf()
         w.setWindowTitle("View data")
-        w.lb.setText(f"View first and last rows of <b>{pl.Path(data_file_path).name}</b> file")
-        w.pbOK.setText(cfg.CLOSE)
-        w.label.setText("Index of columns to plot")
-        w.le.setEnabled(False)
-        w.le.setText(columns_to_plot)
-        w.pbCancel.setVisible(False)
 
-        w.tw.setColumnCount(file_parameters["fields number"])
-        if footer:
-            hf = header + [file_parameters["separator"].join(["..."] * file_parameters["fields number"])] + footer
-            w.tw.setRowCount(len(header) + len(footer) + 1)
-        else:
-            hf = header
-            w.tw.setRowCount(len(header))
+        w.tw.setRowCount(len(df1))
+        w.tw.setColumnCount(len(df1.columns))
 
-        for idx, row in enumerate(hf):
-            for col, v in enumerate(row.split(file_parameters["separator"])):
-                item = QTableWidgetItem(v)
+
+        for col_idx, header in enumerate(df1.columns):
+            item = QTableWidgetItem(str(header))
+            item.setFlags(Qt.ItemIsEnabled)
+            w.tw.setItem(0, col_idx, item)
+
+        for idx, row in df1.iterrows():
+            for col_idx, v in enumerate(row):
+                item = QTableWidgetItem(str(v))
                 item.setFlags(Qt.ItemIsEnabled)
-                w.tw.setItem(idx, col, item)
+                w.tw.setItem(idx+1, col_idx, item)
 
         # stats
         try:
-            df = pd.read_csv(
-                data_file_path,
-                sep=file_parameters["separator"],
-                header=None if not file_parameters["has header"] else [0],
-            )
-            # set columns names to based 1 index
-            if not file_parameters["has header"]:
-                df.columns = range(1, len(df.columns) + 1)
-
+            df = pd.read_csv(StringIO(csv_string), sep=',', header=0)
+            df.columns = range(1, len(df.columns) + 1)
             stats_out = str(df.describe())
         except Exception:
             stats_out = "Not available"
+
         w.stats.setPlainText(stats_out)
 
         w.exec_()
+
 
     def extract_wav(self):
         """
