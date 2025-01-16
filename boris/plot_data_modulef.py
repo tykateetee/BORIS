@@ -38,8 +38,10 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QSpacerItem,
+    QMessageBox,
 )
 
+from . import config as cfg
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None):
@@ -67,6 +69,8 @@ class Plot_data(QWidget):
         y_label,
         columns_to_plot,
         xaxis_bottom_title,
+        observation_pj,
+        ethogram_pj,
         log_level="",
     ):
         super().__init__()
@@ -76,6 +80,8 @@ class Plot_data(QWidget):
         self.setWindowTitle(f"External data: {yaxis_title}")
 
         self.xaxis_bottom_title = xaxis_bottom_title
+        self.observation_pj = observation_pj
+        self.ethogram_pj = ethogram_pj
 
         self.myplot = MyMplCanvas(self)
 
@@ -115,6 +121,21 @@ class Plot_data(QWidget):
         self.error_msg = ""
 
         result = self._load_data(file_name, columns_to_plot)
+
+        self.events = observation_pj["events"]
+
+        self.timesd = [event[0] for event in self.events]
+        self.codes = [event[2] for event in self.events] 
+
+        QMessageBox.critical(self, cfg.programName, str(self.time_offset))
+
+        self.times = [(float(t) + (self.time_offset*2))* 50 for t in self.timesd]
+
+        self.y_values = range(len(self.events))
+
+
+        QMessageBox.critical(self, cfg.programName, str(self.times))
+
 
         if not result:
             return
@@ -192,11 +213,38 @@ class Plot_data(QWidget):
                 self.myplot.axes.set_xlabel(self.xaxis_bottom_title, rotation=0, labelpad=2)
                 self.myplot.axes.set_ylim((min_value, max_value))
                 self.myplot.axes.plot(x, y, self.plot_style, linewidth = 0.2)
+
+                self_codes = [value["code"] for value in self.ethogram_pj.values()]
+
+                event_colors = []
+                code_color_map = {}
+
+                for event in self.events:
+
+                    # get the code of the event
+                    code = event[2]
+                    if code in self_codes:
+                        if code not in code_color_map:
+                            matching_color = None
+                            for _, value in self.ethogram_pj.items():
+                                if value["code"] == code:
+                                    matching_color = value["color"]
+                                    break
+                            
+                            # color does not exist!
+                            if not matching_color or matching_color == "":
+                                matching_color = "#000000"
+
+                            code_color_map[code] = matching_color
+                        event_colors.append(code_color_map[code])
+
+                y_values_for_times = np.interp(self.times, x, y)
+                self.myplot.axes.scatter(self.times, y_values_for_times, c=event_colors, zorder=5)
                 self.black_line = self.myplot.axes.plot([(position_data + self.time_offset)*50, (position_data + self.time_offset)*50], [min_value, max_value], color='black', linewidth=2)[0]
 
-                ax2 = self.myplot.axes.twiny()  # Create a second x-axis sharing the same y-axis
-                ax2.set_xlim((position_start-self.time_offset), (position_end-(self.time_offset*50))/50)  # Ensure the second x-axis matches the first one
-                ax2.set_xlabel(self.xaxis_top_title, rotation=0, labelpad=2)  # Label for the second x-axis
+                ax2 = self.myplot.axes.twiny()
+                ax2.set_xlim((position_start-self.time_offset), (position_end-(self.time_offset*50))/50)
+                ax2.set_xlabel(self.xaxis_top_title, rotation=0, labelpad=2)
 
                 # Plot vertical lines for each event (onset times) with different colors for each event type
                 for onset, description in zip(annotations.onset, annotations.description):
