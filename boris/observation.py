@@ -622,6 +622,8 @@ class Observation(QDialog, Ui_Form):
                 yaxis_title,
                 columns_to_plot,
                 xaxis_bottom_title,
+                self.pj[cfg.OBSERVATIONS][self.leObservationId.text()],
+                self.pj[cfg.ETHOGRAM],
                 log_level=logging.getLogger().getEffectiveLevel(),
             )
 
@@ -630,7 +632,7 @@ class Observation(QDialog, Ui_Form):
                 self.test = None
                 return
 
-            # self.test.setWindowFlags(self.test.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.test.setWindowFlags(self.test.windowFlags() | Qt.WindowStaysOnTopHint)
             self.test.show()
             self.test.update_plot(0)
             # update button text
