@@ -38,10 +38,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QSpacerItem,
-    QMessageBox,
 )
-
-from . import config as cfg
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None):
@@ -123,19 +120,10 @@ class Plot_data(QWidget):
         result = self._load_data(file_name, columns_to_plot)
 
         self.events = observation_pj["events"]
-
         self.timesd = [event[0] for event in self.events]
         self.codes = [event[2] for event in self.events] 
-
-        QMessageBox.critical(self, cfg.programName, str(self.time_offset))
-
         self.times = [(float(t) + (self.time_offset*2))* 50 for t in self.timesd]
-
         self.y_values = range(len(self.events))
-
-
-        QMessageBox.critical(self, cfg.programName, str(self.times))
-
 
         if not result:
             return
@@ -213,14 +201,11 @@ class Plot_data(QWidget):
                 self.myplot.axes.set_xlabel(self.xaxis_bottom_title, rotation=0, labelpad=2)
                 self.myplot.axes.set_ylim((min_value, max_value))
                 self.myplot.axes.plot(x, y, self.plot_style, linewidth = 0.2)
-
                 self_codes = [value["code"] for value in self.ethogram_pj.values()]
 
                 event_colors = []
                 code_color_map = {}
-
                 for event in self.events:
-
                     # get the code of the event
                     code = event[2]
                     if code in self_codes:
